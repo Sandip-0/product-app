@@ -55,16 +55,16 @@ function Main(props) {
             <div style={{ display: "flex", justifyContent: "center" }}>
                 <form style={props.style} onSubmit={handleSubmit}>
                     <label>Product Name</label>
-                    <input style={{border:"1px solid"}} type="text" name="name" required />
+                    <input style={{border:"1px solid",height:"20px"}} type="text" name="name" required />
 
                     <label>Category</label>
-                    <input style={{border:"1px solid"}} type="text" name="category" required />
+                    <input style={{border:"1px solid",height:"20px"}} type="text" name="category" required />
 
                     <label>Price</label>
-                    <input style={{border:"1px solid"}} type="number" name="price" required />
+                    <input style={{border:"1px solid",height:"20px"}} type="number" name="price" required />
 
                     <label>Stock</label>
-                    <input style={{border:"1px solid"}} type="number" name="stock" required />
+                    <input style={{border:"1px solid",height:"20px"}} type="number" name="stock"  required />
 
                     <label>Details</label>
                     <textarea style={{border:"1px solid"}} name="details" rows="4"></textarea>
