@@ -8,12 +8,13 @@ function Header(props) {
 }
 function Main(props) {
     const [products, setProducts] = React.useState([]);
+    const [editingId, setEditingId] = React.useState(null); // track product being edited
 
     function handleSubmit(e) {
         e.preventDefault();
 
-        const product = {
-            id: Date.now(), // unique id for deletion
+        const productData = {
+            id: editingId ? editingId : Date.now(), //product uniqe id
             name: e.target.name.value,
             category: e.target.category.value,
             price: e.target.price.value,
@@ -21,12 +22,32 @@ function Main(props) {
             details: e.target.details.value
         };
 
-        setProducts([...products, product]);
+        if (editingId) {
+            // Update existing product
+            setProducts(products.map(p => p.id === editingId ? productData : p));
+            setEditingId(null); // reset editing state
+        } else {
+            // Add new product
+            setProducts([...products, productData]);
+        }
+
         e.target.reset();
     }
 
     function handleDelete(id) {
         setProducts(products.filter(p => p.id !== id));
+    }
+
+    function handleEdit(product) {
+        setEditingId(product.id);
+
+        // Populate form fields
+        const form = document.querySelector("form");
+        form.name.value = product.name;
+        form.category.value = product.category;
+        form.price.value = product.price;
+        form.stock.value = product.stock;
+        form.details.value = product.details;
     }
 
     return (
@@ -48,17 +69,19 @@ function Main(props) {
                     <label>Details</label>
                     <textarea name="details" rows="4"></textarea>
 
-                    <button style={btn}>Add Product</button>
+                    <button style={btn}>
+                        {editingId ? "Update Product" : "Add Product"}
+                    </button>
                 </form>
             </div>
 
-            <ProductList products={products} onDelete={handleDelete} />
+            <ProductList products={products} onDelete={handleDelete} onEdit={handleEdit} />
         </div>
     );
 }
 
 
-function ProductList({ products, onDelete }) {
+function ProductList({ products, onDelete, onEdit }) {
     if (products.length === 0) {
         return <p style={{ textAlign: "center" }}>No products added</p>;
     }
@@ -72,12 +95,16 @@ function ProductList({ products, onDelete }) {
                     <p>Price: ₹{p.price}</p>
                     <p>Stock: {p.stock}</p>
                     <p>{p.details}</p>
-                    <button onClick={() => onDelete(p.id)} style={{ ...btn, backgroundColor: "red" }}>Delete</button>
+                    <div style={{ display: "flex", gap: "5px", marginTop: "5px" }}>
+                        <button onClick={() => onEdit(p)}style={{ ...btn, backgroundColor: "orange" }}>Edit</button>
+                        <button onClick={() => onDelete(p.id)}style={{ ...btn, backgroundColor: "red" }}>Delete</button>
+                    </div>
                 </div>
             ))}
         </div>
     );
 }
+
 
 
 
