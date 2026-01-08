@@ -1,4 +1,3 @@
-
 function Header(props) {
     return (
         <div style={props.style}>
@@ -8,13 +7,12 @@ function Header(props) {
 }
 function Main(props) {
     const [products, setProducts] = React.useState([]);
-    const [editingId, setEditingId] = React.useState(null); // track product being edited
+    const [editingIndex, setEditingIndex] = React.useState(null);
 
     function handleSubmit(e) {
         e.preventDefault();
 
         const productData = {
-            id: editingId ? editingId : Date.now(), //product uniqe id
             name: e.target.name.value,
             category: e.target.category.value,
             price: e.target.price.value,
@@ -22,10 +20,12 @@ function Main(props) {
             details: e.target.details.value
         };
 
-        if (editingId) {
+        if (editingIndex !== null) {
             // Update existing product
-            setProducts(products.map(p => p.id === editingId ? productData : p));
-            setEditingId(null); // reset editing state
+            const updatedProducts = [...products];
+            updatedProducts[editingIndex] = productData;
+            setProducts(updatedProducts);
+            setEditingIndex(null);
         } else {
             // Add new product
             setProducts([...products, productData]);
@@ -34,14 +34,14 @@ function Main(props) {
         e.target.reset();
     }
 
-    function handleDelete(id) {
-        setProducts(products.filter(p => p.id !== id));
+    function handleDelete(index) {
+        const updatedProducts = products.filter((_, i) => i !== index);
+        setProducts(updatedProducts);
     }
 
-    function handleEdit(product) {
-        setEditingId(product.id);
+    function handleEdit(product, index) {
+        setEditingIndex(index);
 
-        // Populate form fields
         const form = document.querySelector("form");
         form.name.value = product.name;
         form.category.value = product.category;
@@ -55,79 +55,75 @@ function Main(props) {
             <div style={{ display: "flex", justifyContent: "center" }}>
                 <form style={props.style} onSubmit={handleSubmit}>
                     <label>Product Name</label>
-                    <input type="text" name="name" required />
+                    <input style={{border:"1px solid"}} type="text" name="name" required />
 
                     <label>Category</label>
-                    <input type="text" name="category" required />
+                    <input style={{border:"1px solid"}} type="text" name="category" required />
 
                     <label>Price</label>
-                    <input type="number" name="price" required />
+                    <input style={{border:"1px solid"}} type="number" name="price" required />
 
                     <label>Stock</label>
-                    <input type="number" name="stock" required />
+                    <input style={{border:"1px solid"}} type="number" name="stock" required />
 
                     <label>Details</label>
-                    <textarea name="details" rows="4"></textarea>
+                    <textarea style={{border:"1px solid"}} name="details" rows="4"></textarea>
 
                     <button style={btn}>
-                        {editingId ? "Update Product" : "Add Product"}
+                        {editingIndex !== null ? "Update Product" : "Add Product"}
                     </button>
                 </form>
             </div>
 
-            <ProductList products={products} onDelete={handleDelete} onEdit={handleEdit} />
+            <ProductTable
+                products={products}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+            />
         </div>
     );
 }
 
-
-function ProductList({ products, onDelete, onEdit }) {
+// Table view like Excel
+function ProductTable({ products, onDelete, onEdit }) {
     if (products.length === 0) {
-        return <p style={{ textAlign: "center" }}>No products added</p>;
+        return <p style={{ textAlign: "center", marginTop: "20px" }}>No products added</p>;
     }
 
     return (
-        <div style={list}>
-            {products.map((p) => (
-                <div key={p.id} style={card}>
-                    <h3>{p.name}</h3>
-                    <p>Category: {p.category}</p>
-                    <p>Price: ₹{p.price}</p>
-                    <p>Stock: {p.stock}</p>
-                    <p>{p.details}</p>
-                    <div style={{ display: "flex", gap: "5px", marginTop: "5px" }}>
-                        <button onClick={() => onEdit(p)}style={{ ...btn, backgroundColor: "orange" }}>Edit</button>
-                        <button onClick={() => onDelete(p.id)}style={{ ...btn, backgroundColor: "red" }}>Delete</button>
-                    </div>
-                </div>
-            ))}
-        </div>
+        <table style={table}>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Price (₹)</th>
+                    <th>Stock</th>
+                    <th>Details</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {products.map((p, i) => (
+                    <tr key={i}>
+                        <td>{i + 1}</td> {/* sequential ID */}
+                        <td>{p.name}</td>
+                        <td>{p.category}</td>
+                        <td>{p.price}</td>
+                        <td>{p.stock}</td>
+                        <td>{p.details}</td>
+                        <td>
+                            <button onClick={() => onEdit(p, i)}style={{ ...btn, backgroundColor: "orange" }}>Edit</button>
+                            <button onClick={() => onDelete(i)}style={{ ...btn, backgroundColor: "red" }}>Delete</button>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
     );
 }
 
-
-
-
-const card = {
-    border: "1px solid #ccc",
-    padding: "10px",
-    width: "200px"
-};
-function App() {
-    return (
-        <div>
-            <Header style={a} />
-            <Main style={b} />
-        </div>
-    );
-}
-const page = ReactDOM.createRoot(document.getElementById("root"));
-page.render(<App />);
-
-
-
-
-//styles
+// Styles
 const a = {
     display: "flex",
     alignItems: "center",
@@ -142,22 +138,40 @@ const b = {
     display: "flex",
     width: "300px",
     flexDirection: "column",
-    gap: "6px"
+    gap: "6px",
+    
 };
 
 const btn = {
-    marginTop: "10px",
+    margin: "2px",
     padding: "6px",
-    backgroundColor: "black",
     color: "white",
     border: "none",
-    cursor: "pointer"
+    cursor: "pointer",
+    backgroundColor:"green"
 };
 
-const list = {
-    display: "flex",
-    justifyContent: "center",
-    gap: "10px",
-    marginTop: "20px",
-    flexWrap: "wrap"
+const table = {
+    width: "90%",
+    margin: "20px auto",
+    borderCollapse: "collapse",
+    textAlign: "center",
 };
+
+table.th = table.td = {
+    border: "1px solid #ccc",
+    padding: "8px"
+};
+
+// App
+function App() {
+    return (
+        <div>
+            <Header style={a} />
+            <Main style={b} />
+        </div>
+    );
+}
+
+const page = ReactDOM.createRoot(document.getElementById("root"));
+page.render(<App />);
